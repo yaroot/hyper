@@ -248,7 +248,11 @@ runServer' options components runM middleware = do
                       , hostname: unwrap options.hostname
                       , backlog: Nothing
                       }
-  HTTP.listen server listenOptions (options.onListening options.hostname options.port)
+      onListening :: Effect Unit
+      onListening = do
+        port <- HTTP.serverPort server
+        options.onListening options.hostname $ Hyper.Node.Server.Options.Port port
+  HTTP.listen server listenOptions onListening
   where
     onRequest :: HTTP.Request -> HTTP.Response -> Effect Unit
     onRequest request response =
